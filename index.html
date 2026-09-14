@@ -1,0 +1,1072 @@
+<title>أين معاملتي؟</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#0F231C;
+    --bg-deep:#0A1913;
+    --panel:#173628;
+    --panel-2:#1E4230;
+    --line:#2E5641;
+    --gold:#C9A227;
+    --gold-bright:#EAC65B;
+    --paper:#EFE7D2;
+    --paper-ink:#3B2F22;
+    --paper-ink-soft:#6B5D45;
+    --danger:#C0503A;
+    --danger-bright:#E37457;
+    --success:#4FAE7C;
+    --success-bright:#6FD69B;
+    --text:#F4EFE1;
+    --text-muted:#9FB6A8;
+    --text-faint:#6C8778;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --shadow-deep:0 18px 40px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, #1B3F2C 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    color:var(--text);
+    font-family:'Tajawal', 'Segoe UI', sans-serif;
+    min-height:100vh;
+    direction:rtl;
+  }
+  h1,h2,h3,.font-display{
+    font-family:'Cairo','Tajawal',sans-serif;
+    text-wrap:balance;
+    margin:0;
+  }
+  .num, .tabular{
+    font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--gold-bright); outline-offset:2px;}
+
+  #app{
+    max-width:760px;
+    margin:0 auto;
+    padding: 18px 16px 40px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  /* ---------- HUD ---------- */
+  .hud{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:10px 14px;
+    box-shadow:var(--shadow-deep);
+    flex-wrap:wrap;
+  }
+  .hud-id{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+  .hud-badge{
+    width:38px;height:38px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #2C5B41, #132D21);
+    border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .hud-badge svg{width:22px;height:22px;}
+  .hud-name{display:flex;flex-direction:column;min-width:0;}
+  .hud-name strong{font-family:'Cairo',sans-serif;font-weight:800;font-size:.95rem;white-space:nowrap;}
+  .hud-name span{font-size:.72rem;color:var(--text-muted);}
+
+  .hud-levels{display:flex;gap:6px;}
+  .hud-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--line);
+    border:1px solid var(--text-faint);
+    transition:background .3s, border-color .3s;
+  }
+  .hud-dot.done{background:var(--gold);border-color:var(--gold-bright);}
+  .hud-dot.active{background:var(--success);border-color:var(--success-bright); box-shadow:0 0 0 3px rgba(79,174,124,.25);}
+
+  .hud-meter{
+    display:flex;align-items:center;gap:8px;
+    min-width:150px;
+  }
+  .hud-meter-label{font-size:.68rem;color:var(--text-muted);white-space:nowrap;}
+  .hud-meter-track{
+    position:relative;
+    width:100px;height:10px;border-radius:6px;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    overflow:hidden;
+    flex:none;
+  }
+  .hud-meter-fill{
+    position:absolute; inset:0; width:100%;
+    border-radius:6px;
+    background:linear-gradient(90deg, var(--danger), var(--gold) 55%, var(--success));
+    transform-origin:right center;
+    transition:transform .6s cubic-bezier(.4,0,.2,1);
+  }
+  .hud-meter-val{font-size:.85rem;font-weight:600;width:2.6em;text-align:left;}
+
+  .hud-coins{
+    display:flex; align-items:center; gap:5px;
+    background:rgba(201,162,39,.12);
+    border:1px solid var(--gold);
+    border-radius:999px;
+    padding:4px 10px;
+    font-size:.82rem; font-weight:700; color:var(--gold-bright);
+  }
+  .hud-coins svg{width:14px;height:14px;}
+
+  /* ---------- Stage ---------- */
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    animation:rise .45s ease both;
+  }
+  @keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){
+    .screen{animation:none;}
+    *{transition-duration:.01ms !important; animation-duration:.01ms !important;}
+  }
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-deep);
+    padding:22px;
+  }
+
+  .eyebrow{
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:.72rem;
+    letter-spacing:.06em;
+    color:var(--gold-bright);
+    text-transform:none;
+  }
+  .lead{
+    font-family:'Cairo',sans-serif;
+    font-weight:900;
+    font-size:clamp(1.4rem, 4.5vw, 1.9rem);
+    line-height:1.3;
+    margin-top:4px;
+  }
+  .body-text{color:var(--text-muted); line-height:1.8; font-size:.96rem;}
+
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:1rem;
+    padding:14px 26px;
+    border-radius:999px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn:active{transform:translateY(1px) scale(.98);}
+  .btn-primary{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#28210A;
+    box-shadow:0 10px 24px -6px rgba(201,162,39,.55);
+  }
+  .btn-primary:hover{filter:brightness(1.06); box-shadow:0 12px 28px -6px rgba(201,162,39,.7);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--text-muted);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover{color:var(--text); border-color:var(--gold);}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+
+  /* ---------- Colonel avatar ---------- */
+  .colonel{
+    display:flex; align-items:center; gap:18px;
+    flex-wrap:wrap;
+  }
+  .colonel-portrait{flex:none;}
+  .colonel-portrait svg{width:104px; height:104px; display:block;}
+  .colonel-speech{
+    position:relative;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    flex:1;
+    min-width:200px;
+  }
+  .colonel-speech::before{
+    content:"";
+    position:absolute; top:24px; left:-8px;
+    width:16px; height:16px;
+    background:var(--bg-deep);
+    border-inline-start:1px solid var(--line);
+    border-block-end:1px solid var(--line);
+    transform:rotate(45deg);
+  }
+  .colonel-speech p{
+    margin:0; font-family:'Cairo',sans-serif; font-weight:800;
+    font-size:1.05rem; color:var(--text);
+  }
+  .colonel-rank{
+    display:flex; align-items:center; gap:6px; margin-top:6px;
+  }
+  .colonel-rank .star{width:11px; height:11px;}
+  .colonel-rank span{font-size:.72rem; color:var(--text-muted);}
+
+  /* ---------- Level 1: desk ---------- */
+  .desk{
+    background:
+      repeating-linear-gradient(90deg, #6B4A2B 0 3px, #63431F 3px 46px),
+      linear-gradient(180deg,#7A5631,#5C3E1E);
+    border-radius:var(--radius-lg);
+    border:1px solid #3E2A15;
+    padding:20px 16px 26px;
+    box-shadow:inset 0 0 60px rgba(0,0,0,.35), var(--shadow-deep);
+    position:relative;
+  }
+  .desk-hint{
+    color:#F3E6C9; background:rgba(20,14,6,.55);
+    display:inline-block; padding:6px 12px; border-radius:999px;
+    font-size:.78rem; margin-bottom:14px; border:1px solid rgba(255,255,255,.12);
+  }
+  .desk-top{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .timer{
+    display:flex; align-items:center; gap:8px;
+    background:rgba(20,14,6,.55);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:999px;
+    padding:5px 8px 5px 14px;
+  }
+  .timer-ring{position:relative; width:26px; height:26px; flex:none;}
+  .timer-ring svg{transform:rotate(-90deg);}
+  .timer-ring circle{fill:none; stroke-width:3;}
+  .timer-ring .track{stroke:rgba(255,255,255,.18);}
+  .timer-ring .bar{stroke:var(--gold-bright); stroke-linecap:round; transition:stroke-dashoffset .3s linear, stroke .3s ease;}
+  .timer.low .timer-ring .bar{stroke:var(--danger-bright);}
+  .timer-val{font-size:.82rem; color:#F3E6C9; font-weight:700;}
+  .timer.low .timer-val{color:var(--danger-bright);}
+  .file-grid{
+    display:flex; flex-wrap:wrap; gap:14px 10px; justify-content:center;
+    padding:6px 2px 2px;
+  }
+  .file-card{
+    width:128px; min-height:88px;
+    background:var(--paper);
+    color:var(--paper-ink);
+    border-radius:3px 3px var(--radius-sm) var(--radius-sm);
+    padding:10px 9px;
+    cursor:pointer;
+    border:none;
+    text-align:right;
+    box-shadow:0 6px 12px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.4) inset;
+    position:relative;
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    font-family:'Tajawal',sans-serif;
+  }
+  .file-card::before{
+    content:"";
+    position:absolute; inset:8px 8px auto 8px; height:2px;
+    background:repeating-linear-gradient(90deg, var(--paper-ink-soft) 0 10px, transparent 10px 16px);
+    opacity:.35; top:34px;
+  }
+  .file-card:hover{transform:translateY(-4px) scale(1.03); filter:brightness(1.03);}
+  .file-card .clip{
+    position:absolute; top:-7px; right:14px; width:18px; height:12px;
+    background:linear-gradient(180deg,#B8BEC4,#8B939B);
+    border-radius:3px; box-shadow:0 2px 3px rgba(0,0,0,.3);
+  }
+  .file-card .tag{
+    font-size:.62rem; color:var(--paper-ink-soft); font-weight:600;
+  }
+  .file-card .title{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:.82rem;
+    margin-top:14px; line-height:1.35;
+  }
+  .file-card.wrong{
+    filter:grayscale(.5) brightness(.8);
+    cursor:default;
+    transform:rotate(0) !important;
+  }
+  .file-card.wrong .title{color:var(--danger);}
+  .file-card.wrong::after{
+    content:"✕"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:1.8rem; color:var(--danger); font-weight:900; background:rgba(20,14,6,.15);
+  }
+  .file-card.correct{
+    background:var(--success-bright);
+    box-shadow:0 0 0 3px var(--success), 0 10px 20px rgba(0,0,0,.4);
+    animation:pop .3s ease;
+  }
+  .file-card.correct .title, .file-card.correct .tag{color:#123423;}
+  @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.08);}100%{transform:scale(1);}}
+  .file-card[disabled]{pointer-events:none;}
+
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(10px);
+    background:var(--bg-deep); border:1px solid var(--line); color:var(--text);
+    padding:10px 18px; border-radius:999px; font-size:.85rem;
+    box-shadow:var(--shadow-deep);
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:20;
+    max-width:90vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast.danger{border-color:var(--danger); color:var(--danger-bright);}
+  .toast.success{border-color:var(--success); color:var(--success-bright);}
+
+  /* ---------- Level 2: dashboard ---------- */
+  .dash{
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    box-shadow:var(--shadow-deep);
+  }
+  .dash-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    flex-wrap:wrap; gap:6px; margin-bottom:18px;
+  }
+  .dash-head .ref{font-size:.75rem; color:var(--text-muted);}
+  .rail{
+    display:flex; align-items:center; margin:8px 0 22px;
+  }
+  .rail-step{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    flex:none; width:74px;
+  }
+  .rail-node{
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg-deep); border:2px solid var(--line);
+    color:var(--text-faint); font-family:'Cairo',sans-serif; font-weight:800;
+    transition:all .4s ease;
+    position:relative;
+    flex:none;
+  }
+  .rail-step.done .rail-node{background:var(--success); border-color:var(--success-bright); color:#0C2318;}
+  .rail-step.active .rail-node{
+    background:var(--gold); border-color:var(--gold-bright); color:#28210A;
+    box-shadow:0 0 0 6px rgba(201,162,39,.22);
+    animation:glow 1.6s ease-in-out infinite;
+  }
+  @keyframes glow{0%,100%{box-shadow:0 0 0 5px rgba(201,162,39,.18);}50%{box-shadow:0 0 0 9px rgba(201,162,39,.32);}}
+  .rail-step .rail-label{font-size:.72rem; color:var(--text-muted); text-align:center;}
+  .rail-step.done .rail-label, .rail-step.active .rail-label{color:var(--text);}
+  .rail-line{flex:1; height:3px; background:var(--line); margin:0 -2px 26px; border-radius:2px; overflow:hidden; position:relative;}
+  .rail-line::after{
+    content:""; position:absolute; inset:0; width:0%;
+    background:var(--success);
+    transition:width .5s ease;
+  }
+  .rail-line.filled::after{width:100%;}
+
+  .case-card{
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;
+    flex-wrap:wrap; margin-bottom:18px;
+  }
+  .case-card .status-pill{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:.78rem;
+    padding:6px 14px; border-radius:999px;
+    background:rgba(201,162,39,.15); color:var(--gold-bright);
+    border:1px solid var(--gold);
+  }
+  .case-card .status-pill.closed{
+    background:rgba(79,174,124,.18); color:var(--success-bright); border-color:var(--success);
+  }
+
+  /* ---------- Victory ---------- */
+  .victory-hero{
+    text-align:center; padding:30px 18px 8px;
+  }
+  .victory-score{
+    font-family:'Cairo',sans-serif; font-weight:900;
+    font-size:clamp(3rem,14vw,4.2rem);
+    color:var(--gold-bright);
+    line-height:1;
+    text-shadow:0 4px 24px rgba(234,198,91,.35);
+  }
+  .confetti-row{display:flex; justify-content:center; gap:10px; margin:14px 0 6px; font-size:1.4rem;}
+
+  .stat-row{
+    display:flex; gap:10px; flex-wrap:wrap;
+    justify-content:center; margin-top:16px;
+  }
+  .stat-tile{
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:12px 20px; text-align:center; min-width:110px;
+  }
+  .stat-tile .stat-num{font-family:'Cairo',sans-serif; font-weight:900; font-size:1.4rem; color:var(--gold-bright);}
+  .stat-tile .stat-label{font-size:.72rem; color:var(--text-muted); margin-top:2px;}
+
+  /* ---------- Leaderboard & name entry ---------- */
+  .name-form{
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;
+  }
+  .name-input{
+    flex:1; min-width:160px;
+    background:var(--bg-deep); border:1px solid var(--line); color:var(--text);
+    border-radius:999px; padding:12px 18px; font-family:'Tajawal',sans-serif; font-size:.95rem;
+  }
+  .name-input:focus{border-color:var(--gold);}
+  .name-input::placeholder{color:var(--text-faint);}
+  .save-status{font-size:.78rem; color:var(--text-muted); margin-top:8px; min-height:1.2em;}
+  .save-status.ok{color:var(--success-bright);}
+  .save-status.err{color:var(--danger-bright);}
+
+  .lb-list{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+  .lb-row{
+    display:flex; align-items:center; gap:12px;
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:10px 14px;
+  }
+  .lb-row.me{border-color:var(--gold); background:rgba(201,162,39,.1);}
+  .lb-rank{
+    font-family:'Cairo',sans-serif; font-weight:900; color:var(--text-muted);
+    width:1.8em; text-align:center; flex:none;
+  }
+  .lb-row:nth-child(1) .lb-rank{color:var(--gold-bright);}
+  .lb-name{flex:1; font-weight:600; font-size:.9rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-coins{font-family:'IBM Plex Sans Arabic',sans-serif; font-variant-numeric:tabular-nums; color:var(--gold-bright); font-weight:700; font-size:.9rem;}
+  .lb-empty{color:var(--text-muted); font-size:.88rem; text-align:center; padding:18px 0;}
+  .lb-loading{color:var(--text-muted); font-size:.88rem; text-align:center; padding:18px 0;}
+
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+
+  <header class="hud">
+    <div class="hud-id">
+      <div class="hud-badge">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l1.9 4.6 5 .4-3.8 3.2 1.2 4.9L12 12.6 7.7 15.1l1.2-4.9L5.1 7l5-.4L12 2z" fill="#C9A227"/></svg>
+      </div>
+      <div class="hud-name">
+        <strong>العقيد فهد</strong>
+        <span>أين وصلت معاملتي؟</span>
+      </div>
+    </div>
+    <div class="hud-levels" aria-hidden="true">
+      <span class="hud-dot" id="dot-1"></span>
+      <span class="hud-dot" id="dot-2"></span>
+    </div>
+    <div class="hud-meter">
+      <span class="hud-meter-label">رضا العميل</span>
+      <span class="hud-meter-track"><span class="hud-meter-fill" id="meterFill"></span></span>
+      <span class="hud-meter-val num" id="meterVal">100%</span>
+    </div>
+    <div class="hud-coins">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#C9A227" stroke="#8a6f1c" stroke-width="1.5"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#28210A" font-weight="800">$</text></svg>
+      <span class="num" id="coinsVal">0</span>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- INTRO -->
+    <section class="screen" id="screen-intro">
+      <div class="panel">
+        <p class="eyebrow">مسار التحدي · تجربة العميل</p>
+        <h1 class="lead">معاملة العقيد فهد ضاعت بين الأوراق</h1>
+        <p class="body-text" style="margin-top:10px">قدّم العقيد فهد طلب نقل خدمة منذ أسابيع، ولا أحد يستطيع إخباره بمكانه الآن. ابحث عن معاملته بين الأوراق، ثم شاهد كيف يغيّر التتبع الرقمي القصة بالكامل.</p>
+      </div>
+
+      <div class="panel colonel">
+        <div class="colonel-portrait" id="portraitIntro"></div>
+        <div class="colonel-speech">
+          <p>«أين وصلت معاملتي؟»</p>
+          <div class="colonel-rank">
+            <svg class="star" viewBox="0 0 24 24" fill="#C9A227"><path d="M12 2l1.9 4.6 5 .4-3.8 3.2 1.2 4.9L12 12.6 7.7 15.1l1.2-4.9L5.1 7l5-.4L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="#C9A227"><path d="M12 2l1.9 4.6 5 .4-3.8 3.2 1.2 4.9L12 12.6 7.7 15.1l1.2-4.9L5.1 7l5-.4L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="#C9A227"><path d="M12 2l1.9 4.6 5 .4-3.8 3.2 1.2 4.9L12 12.6 7.7 15.1l1.2-4.9L5.1 7l5-.4L12 2z"/></svg>
+            <span>رتبة: عقيد · طلب رقم 4471</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnStart">ابدأ التحدي ⟵</button>
+      </div>
+    </section>
+
+    <!-- LEVEL 1 -->
+    <section class="screen" id="screen-level1" hidden>
+      <div class="panel">
+        <p class="eyebrow">المرحلة ١ · المكتب الورقي</p>
+        <h2 class="lead">ابحث عن معاملة العقيد فهد</h2>
+        <p class="body-text" style="margin-top:8px">مكتب الموظف مزدحم بالمعاملات. كل اختيار خاطئ يخفّض رضا العميل، وكل ثانية تمر تقلّل الكوينز. ابحث عن الملف الصحيح: <b style="color:var(--text)">طلب رقم 4471 باسم العقيد فهد</b>.</p>
+      </div>
+      <div class="desk">
+        <div class="desk-top">
+          <span class="desk-hint">🔍 انقر على ملف لفتحه</span>
+          <span class="timer" id="timerBox">
+            <span class="timer-ring">
+              <svg viewBox="0 0 26 26" width="26" height="26">
+                <circle class="track" cx="13" cy="13" r="10.5"></circle>
+                <circle class="bar" id="timerBar" cx="13" cy="13" r="10.5" stroke-dasharray="65.97" stroke-dashoffset="0"></circle>
+              </svg>
+            </span>
+            <span class="timer-val num" id="timerVal">25</span>
+          </span>
+        </div>
+        <div class="file-grid" id="fileGrid"></div>
+      </div>
+    </section>
+
+    <!-- TRANSITION -->
+    <section class="screen" id="screen-transition" hidden>
+      <div class="panel">
+        <p class="eyebrow">بعد العثور على الملف</p>
+        <h2 class="lead">وُجد الملف... لكن لا أحد يعرف أين هو الآن فعليًا</h2>
+        <p class="body-text" style="margin-top:10px">الملف انتقل بين ثلاثة أقسام دون أي إشعار للعقيد فهد، ورضاه انخفض بسبب الغموض والانتظار. ماذا لو استبدلنا الورق بلوحة تتبع رقمية واحدة؟</p>
+        <div class="stat-row">
+          <div class="stat-tile">
+            <div class="stat-num num" id="foundTimeStat">٠ ث</div>
+            <div class="stat-label">زمن البحث</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-num num" id="foundCoinsStat">0</div>
+            <div class="stat-label">كوينز مكتسبة</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGoLevel2">عرض النظام الرقمي ⟵</button>
+      </div>
+    </section>
+
+    <!-- LEVEL 2 -->
+    <section class="screen" id="screen-level2" hidden>
+      <div class="panel">
+        <p class="eyebrow">المرحلة ٢ · لوحة التتبع الرقمية</p>
+        <h2 class="lead">أكمل إجراء معاملة العقيد فهد</h2>
+        <p class="body-text" style="margin-top:8px">بدل الأوراق المبعثرة، مسار واحد واضح بأربع خطوات. أرسل إشعارًا للعقيد فهد فور إغلاق معاملته.</p>
+      </div>
+
+      <div class="dash">
+        <div class="dash-head">
+          <strong class="font-display" style="font-size:1rem">مسار الخدمة</strong>
+          <span class="ref num">طلب رقم 4471 · العقيد فهد</span>
+        </div>
+
+        <div class="rail" id="rail">
+          <div class="rail-step done" data-step="0">
+            <div class="rail-node">✓</div>
+            <span class="rail-label">استلام</span>
+          </div>
+          <div class="rail-line filled"></div>
+          <div class="rail-step done" data-step="1">
+            <div class="rail-node">✓</div>
+            <span class="rail-label">تعيين</span>
+          </div>
+          <div class="rail-line filled" id="line2"></div>
+          <div class="rail-step active" data-step="2">
+            <div class="rail-node num">3</div>
+            <span class="rail-label">إجراء</span>
+          </div>
+          <div class="rail-line" id="line3"></div>
+          <div class="rail-step" data-step="3">
+            <div class="rail-node num">4</div>
+            <span class="rail-label">إغلاق</span>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <div>
+            <div style="font-family:'Cairo',sans-serif; font-weight:800; font-size:.92rem">نقل خدمة داخلي</div>
+            <div style="font-size:.75rem; color:var(--text-muted); margin-top:3px">مسند إلى: قسم شؤون الأفراد</div>
+          </div>
+          <span class="status-pill" id="statusPill">قيد الإجراء</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnNotify">📨 إرسال إشعار</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VICTORY -->
+    <section class="screen" id="screen-victory" hidden>
+      <div class="panel victory-hero">
+        <p class="eyebrow">تم إغلاق المعاملة</p>
+        <div class="confetti-row" aria-hidden="true">🎖️ ✨ 🎖️ ✨ 🎖️</div>
+        <div class="victory-score num">100%</div>
+        <p class="body-text" style="margin-top:6px">رضا العميل: ممتاز</p>
+        <div class="stat-row">
+          <div class="stat-tile">
+            <div class="stat-num num" id="victoryCoinsStat">0</div>
+            <div class="stat-label">إجمالي الكوينز</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel colonel">
+        <div class="colonel-portrait" id="portraitVictory"></div>
+        <div class="colonel-speech">
+          <p id="victoryLine">«الحمد لله، وصلني إشعار بإغلاق المعاملة أول بأول!»</p>
+          <div class="colonel-rank">
+            <span>معاملة رقم 4471 · أُغلقت خلال المسار الرقمي</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="font-family:'Cairo',sans-serif; font-size:.95rem; margin-bottom:8px">الفرق بين التجربتين</h3>
+        <p class="body-text">في المكتب الورقي، ضاع الوقت في البحث والانتظار دون أي تحديث. في اللوحة الرقمية، تابع فهد كل خطوة وتلقى إشعارًا فوريًا بالإغلاق — وهذا ما رفع رضاه إلى 100%.</p>
+      </div>
+
+      <div class="panel" id="saveScorePanel">
+        <h3 style="font-family:'Cairo',sans-serif; font-size:.95rem; margin-bottom:4px">سجّل نتيجتك في لوحة الصدارة</h3>
+        <p class="body-text" style="font-size:.85rem">اكتب اسمك عشان يظهر ترتيبك بين باقي المشاركين.</p>
+        <form class="name-form" id="saveScoreForm">
+          <input class="name-input" id="playerNameInput" type="text" maxlength="40" placeholder="اسمك" required>
+          <button class="btn btn-primary" type="submit" id="btnSaveScore">💾 حفظ النتيجة</button>
+        </form>
+        <p class="save-status" id="saveStatus"></p>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btnShowLeaderboard">🏆 لوحة الصدارة</button>
+        <button class="btn btn-primary" id="btnReplay">↻ إعادة التحدي</button>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="screen" id="screen-leaderboard" hidden>
+      <div class="panel">
+        <p class="eyebrow">أفضل النتائج</p>
+        <h2 class="lead">لوحة الصدارة</h2>
+        <p class="body-text" style="margin-top:8px">الترتيب حسب الكوينز — أسرع من يجد المعاملة الصحيحة يتصدّر.</p>
+        <div id="lbContent">
+          <div class="lb-loading">جارِ التحميل...</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btnLbRefresh">↻ تحديث</button>
+        <button class="btn btn-primary" id="btnLbBack">رجوع ⟵</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Colonel portrait (SVG, two expressions) ----------
+  function portraitSVG(mood){
+    var mouth = mood === 'happy'
+      ? '<path d="M40 66 Q50 75 60 66" stroke="#3B2A18" stroke-width="3" fill="none" stroke-linecap="round"/>'
+      : '<path d="M40 70 Q50 63 60 70" stroke="#3B2A18" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    var brow = mood === 'happy'
+      ? '<path d="M33 46 Q38 43 43 46M57 46 Q62 43 67 46" stroke="#2b2115" stroke-width="3" fill="none" stroke-linecap="round"/>'
+      : '<path d="M33 44 Q38 49 43 46M57 46 Q62 49 67 44" stroke="#2b2115" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return (
+      '<svg viewBox="0 0 100 100" role="img" aria-label="العقيد فهد">' +
+        '<circle cx="50" cy="50" r="48" fill="#132D21" stroke="#C9A227" stroke-width="3"/>' +
+        '<circle cx="50" cy="58" r="26" fill="#E7B98C"/>' +
+        '<path d="M22 46 Q50 8 78 46 L78 40 Q50 20 22 40 Z" fill="#183A28"/>' +
+        '<rect x="20" y="34" width="60" height="9" rx="3" fill="#C9A227"/>' +
+        '<circle cx="50" cy="28" r="5" fill="#C9A227"/>' +
+        brow +
+        '<circle cx="40" cy="55" r="3" fill="#2b2115"/>' +
+        '<circle cx="60" cy="55" r="3" fill="#2b2115"/>' +
+        mouth +
+        '<path d="M32 68 Q50 60 68 68" stroke="#8a6a3f" stroke-width="4" fill="none" stroke-linecap="round" opacity="' + (mood==='happy' ? '0':'0.85') + '"/>' +
+        '<path d="M18 90 Q50 74 82 90 L82 100 L18 100 Z" fill="#173626"/>' +
+        '<rect x="42" y="86" width="16" height="8" fill="#C9A227"/>' +
+      '</svg>'
+    );
+  }
+  document.getElementById('portraitIntro').innerHTML = portraitSVG('worried');
+  document.getElementById('portraitVictory').innerHTML = portraitSVG('happy');
+
+  // ---------- State ----------
+  var TOTAL_TIME = 25; // seconds allowed to find the correct file
+  var CIRC = 65.97; // 2*PI*10.5, the ring's circumference
+
+  var WORKER_URL = 'https://colonel-fahd-leaderboard.innovationraces.workers.dev';
+
+  var state = {
+    satisfaction: 100,
+    coins: 0,
+    findTimeSeconds: 0,
+    screen: 'intro',
+    level1Solved: false,
+    playerName: '',
+    scoreSaved: false
+  };
+
+  function snapshot(){ return JSON.parse(JSON.stringify(state)); }
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+    window.claude.hot.snapshot(snapshot);
+  }
+
+  var screens = ['intro','level1','transition','level2','victory','leaderboard'];
+  function showScreen(name){
+    state.screen = name;
+    screens.forEach(function(s){
+      document.getElementById('screen-'+s).hidden = (s !== name);
+    });
+    document.getElementById('dot-1').className = 'hud-dot' + (name==='level1'?' active':(['transition','level2','victory','leaderboard'].indexOf(name)>-1?' done':''));
+    document.getElementById('dot-2').className = 'hud-dot' + (name==='level2'?' active':(['victory','leaderboard'].indexOf(name)>-1?' done':''));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function setSatisfaction(val, animateFrom){
+    val = Math.max(0, Math.min(100, val));
+    state.satisfaction = val;
+    document.getElementById('meterFill').style.transform = 'scaleX(' + (val/100) + ')';
+    document.getElementById('meterVal').textContent = val + '%';
+  }
+  setSatisfaction(100);
+  document.getElementById('meterFill').style.transformOrigin = 'right center';
+
+  function setCoins(val){
+    state.coins = val;
+    document.getElementById('coinsVal').textContent = val;
+  }
+  setCoins(0);
+
+  var toastEl = document.createElement('div');
+  toastEl.className = 'toast';
+  document.body.appendChild(toastEl);
+  var toastTimer;
+  function toast(msg, kind){
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (kind ? ' '+kind : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.className = 'toast'; }, 1800);
+  }
+
+  // ---------- Level 1: desk files ----------
+  var correctFile = { title: 'طلب نقل خدمة — العقيد فهد', tag: 'رقم 4471' };
+  var decoys = [
+    { title: 'طلب إجازة سنوية', tag: 'رقم 2210' },
+    { title: 'تقرير صيانة مركبات', tag: 'رقم 3387' },
+    { title: 'طلب تزويد بمعدات', tag: 'رقم 1904' },
+    { title: 'تقرير مالي ربعي', tag: 'رقم 2701' },
+    { title: 'طلب دورة تدريبية', tag: 'رقم 3059' },
+    { title: 'مراسلة إدارية عامة', tag: 'رقم 1188' },
+    { title: 'طلب استبدال بطاقة', tag: 'رقم 2645' }
+  ];
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function buildDesk(){
+    var grid = document.getElementById('fileGrid');
+    grid.innerHTML = '';
+    var cards = shuffle(decoys.slice(0,6).concat([correctFile]));
+    cards = shuffle(cards);
+    cards.forEach(function(card){
+      var btn = document.createElement('button');
+      btn.className = 'file-card';
+      if (card === correctFile) btn.dataset.correct = '1';
+      var rot = (Math.random()*14 - 7).toFixed(1);
+      btn.style.transform = 'rotate(' + rot + 'deg)';
+      btn.innerHTML =
+        '<span class="clip"></span>' +
+        '<div class="tag num">' + card.tag + '</div>' +
+        '<div class="title">' + card.title + '</div>';
+      btn.addEventListener('click', function(){ onFileClick(btn, card); });
+      grid.appendChild(btn);
+    });
+    state.level1Solved = false;
+    setCoins(0);
+    startTimer();
+  }
+
+  // ---------- Level 1 timer & coins (speed bonus) ----------
+  var timerInterval = null;
+  var timeLeft = TOTAL_TIME;
+
+  function updateTimerUI(){
+    var box = document.getElementById('timerBox');
+    var bar = document.getElementById('timerBar');
+    var val = document.getElementById('timerVal');
+    var frac = Math.max(0, timeLeft / TOTAL_TIME);
+    bar.setAttribute('stroke-dashoffset', String(CIRC * (1 - frac)));
+    val.textContent = Math.ceil(timeLeft);
+    box.classList.toggle('low', timeLeft <= 7);
+  }
+
+  function startTimer(){
+    clearInterval(timerInterval);
+    timeLeft = TOTAL_TIME;
+    updateTimerUI();
+    var last = performance.now();
+    timerInterval = setInterval(function(){
+      var now = performance.now();
+      var dt = (now - last) / 1000;
+      last = now;
+      timeLeft -= dt;
+      if (timeLeft <= 0){
+        timeLeft = 0;
+        updateTimerUI();
+        stopTimer();
+        handleTimeout();
+      } else {
+        updateTimerUI();
+      }
+    }, 100);
+  }
+
+  function stopTimer(){
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  function updateTransitionStats(){
+    document.getElementById('foundTimeStat').textContent = Math.round(state.findTimeSeconds) + ' ث';
+    document.getElementById('foundCoinsStat').textContent = state.coins;
+    document.getElementById('victoryCoinsStat').textContent = state.coins;
+  }
+
+  function handleTimeout(){
+    if (state.level1Solved) return;
+    state.level1Solved = true;
+    state.findTimeSeconds = TOTAL_TIME;
+    setCoins(0);
+    var cards = document.querySelectorAll('#fileGrid .file-card');
+    cards.forEach(function(btn){
+      btn.setAttribute('disabled','');
+      if (btn.dataset.correct === '1') btn.classList.add('correct');
+    });
+    toast('انتهى الوقت — لم تحصل على كوينز', 'danger');
+    updateTransitionStats();
+    setTimeout(function(){ showScreen('transition'); }, 1100);
+  }
+
+  function onFileClick(btn, card){
+    if (state.level1Solved) return;
+    if (card === correctFile){
+      stopTimer();
+      btn.classList.add('correct');
+      btn.setAttribute('disabled','');
+      state.level1Solved = true;
+      state.findTimeSeconds = TOTAL_TIME - timeLeft;
+      var earned = Math.round((timeLeft / TOTAL_TIME) * 100);
+      setCoins(earned);
+      toast('وجدته في ' + Math.round(state.findTimeSeconds) + ' ثانية! +' + earned + ' كوينز', 'success');
+      updateTransitionStats();
+      setTimeout(function(){ showScreen('transition'); }, 900);
+    } else {
+      btn.classList.add('wrong');
+      btn.setAttribute('disabled','');
+      setSatisfaction(state.satisfaction - 12);
+      toast('ليس هذا الملف — رضا العميل ينخفض', 'danger');
+    }
+  }
+
+  // ---------- Level 2: dashboard ----------
+  function runNotify(){
+    var btn = document.getElementById('btnNotify');
+    btn.setAttribute('disabled','');
+    btn.style.opacity = '.6';
+
+    var step3 = document.querySelector('.rail-step[data-step="2"]');
+    var step4 = document.querySelector('.rail-step[data-step="3"]');
+    var line3 = document.getElementById('line3');
+    var pill = document.getElementById('statusPill');
+
+    setTimeout(function(){
+      step3.classList.remove('active');
+      step3.classList.add('done');
+      step3.querySelector('.rail-node').textContent = '✓';
+      line3.classList.add('filled');
+    }, 250);
+
+    setTimeout(function(){
+      step4.classList.add('active');
+      step4.querySelector('.rail-node').textContent = '✓';
+      step4.classList.add('done');
+      step4.classList.remove('active');
+      pill.textContent = 'تم الإغلاق';
+      pill.classList.add('closed');
+      toast('تم إرسال إشعار للعقيد فهد: تم إغلاق معاملتك ✅', 'success');
+    }, 700);
+
+    var startVal = state.satisfaction;
+    var target = 100;
+    var t0 = performance.now();
+    function animate(now){
+      var p = Math.min(1, (now - t0) / 900);
+      var eased = 1 - Math.pow(1-p, 3);
+      setSatisfaction(Math.round(startVal + (target-startVal)*eased));
+      if (p < 1) requestAnimationFrame(animate);
+      else setTimeout(function(){ showScreen('victory'); }, 500);
+    }
+    setTimeout(function(){ requestAnimationFrame(animate); }, 700);
+  }
+
+  // ---------- Leaderboard (Cloudflare Worker + Airtable) ----------
+  function submitScore(name){
+    var statusEl = document.getElementById('saveStatus');
+    var btn = document.getElementById('btnSaveScore');
+    statusEl.textContent = 'جارِ الحفظ...';
+    statusEl.className = 'save-status';
+    btn.setAttribute('disabled','');
+
+    fetch(WORKER_URL + '/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        coins: state.coins,
+        timeSeconds: Math.round(state.findTimeSeconds),
+        satisfaction: state.satisfaction
+      })
+    }).then(function(res){
+      if (!res.ok) throw new Error('bad status');
+      return res.json();
+    }).then(function(){
+      state.playerName = name;
+      state.scoreSaved = true;
+      statusEl.textContent = 'تم الحفظ! يقدر يشوف ترتيبه في لوحة الصدارة.';
+      statusEl.className = 'save-status ok';
+    }).catch(function(){
+      statusEl.textContent = 'تعذّر الحفظ — تأكدي إن رابط الـ Worker شغال، ثم حاولي مرة ثانية.';
+      statusEl.className = 'save-status err';
+      btn.removeAttribute('disabled');
+    });
+  }
+
+  function loadLeaderboard(){
+    var content = document.getElementById('lbContent');
+    content.innerHTML = '<div class="lb-loading">جارِ التحميل...</div>';
+    fetch(WORKER_URL + '/leaderboard').then(function(res){
+      if (!res.ok) throw new Error('bad status');
+      return res.json();
+    }).then(function(rows){
+      if (!rows || !rows.length){
+        content.innerHTML = '<div class="lb-empty">لسه محدش سجّل نتيجة.</div>';
+        return;
+      }
+      var html = '<div class="lb-list">';
+      rows.forEach(function(row, i){
+        var isMe = state.scoreSaved && row.name === state.playerName && row.coins === state.coins;
+        html +=
+          '<div class="lb-row' + (isMe ? ' me' : '') + '">' +
+            '<span class="lb-rank">' + (i+1) + '</span>' +
+            '<span class="lb-name">' + escapeHtml(row.name) + (isMe ? ' (إنتَ)' : '') + '</span>' +
+            '<span class="lb-coins num">' + row.coins + ' 🪙</span>' +
+          '</div>';
+      });
+      html += '</div>';
+      content.innerHTML = html;
+    }).catch(function(){
+      content.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكدي إن رابط الـ Worker شغال.</div>';
+    });
+  }
+
+  function escapeHtml(s){
+    var div = document.createElement('div');
+    div.textContent = String(s == null ? '' : s);
+    return div.innerHTML;
+  }
+
+  // ---------- Wiring ----------
+  document.getElementById('btnStart').addEventListener('click', function(){
+    buildDesk();
+    showScreen('level1');
+  });
+  document.getElementById('btnGoLevel2').addEventListener('click', function(){
+    showScreen('level2');
+  });
+  document.getElementById('btnNotify').addEventListener('click', runNotify);
+
+  document.getElementById('saveScoreForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('playerNameInput').value.trim();
+    if (!name) return;
+    submitScore(name);
+  });
+  document.getElementById('btnShowLeaderboard').addEventListener('click', function(){
+    showScreen('leaderboard');
+    loadLeaderboard();
+  });
+  document.getElementById('btnLbRefresh').addEventListener('click', loadLeaderboard);
+  document.getElementById('btnLbBack').addEventListener('click', function(){ showScreen('victory'); });
+
+  document.getElementById('btnReplay').addEventListener('click', function(){
+    state.level1Solved = false;
+    state.scoreSaved = false;
+    setSatisfaction(100);
+    setCoins(0);
+    document.getElementById('playerNameInput').value = '';
+    document.getElementById('saveStatus').textContent = '';
+    document.getElementById('saveStatus').className = 'save-status';
+    document.getElementById('btnSaveScore').removeAttribute('disabled');
+    var step3 = document.querySelector('.rail-step[data-step="2"]');
+    var step4 = document.querySelector('.rail-step[data-step="3"]');
+    step3.className = 'rail-step active';
+    step3.querySelector('.rail-node').textContent = '3';
+    step4.className = 'rail-step';
+    step4.querySelector('.rail-node').textContent = '4';
+    document.getElementById('line3').classList.remove('filled');
+    var pill = document.getElementById('statusPill');
+    pill.textContent = 'قيد الإجراء';
+    pill.classList.remove('closed');
+    var notifyBtn = document.getElementById('btnNotify');
+    notifyBtn.removeAttribute('disabled');
+    notifyBtn.style.opacity = '';
+    showScreen('intro');
+  });
+
+  function start(data){
+    if (data && typeof data.satisfaction === 'number') state.satisfaction = data.satisfaction;
+    if (data && typeof data.coins === 'number') state.coins = data.coins;
+    if (data && typeof data.findTimeSeconds === 'number') state.findTimeSeconds = data.findTimeSeconds;
+    var resuming = !!(data && data.level1Solved);
+    buildDesk();
+    if (resuming){
+      state.level1Solved = true;
+      stopTimer();
+    }
+    showScreen(data && data.screen ? data.screen : 'intro');
+    setSatisfaction(state.satisfaction);
+    setCoins(state.coins);
+    updateTransitionStats();
+  }
+
+  if (window.claude && window.claude.hot && window.claude.hot.ready) {
+    window.claude.hot.ready(start);
+  } else {
+    start({});
+  }
+})();
+</script>
