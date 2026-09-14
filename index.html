@@ -92,15 +92,25 @@
   .hud-name strong{font-family:'Cairo',sans-serif;font-weight:800;font-size:.95rem;white-space:nowrap;}
   .hud-name span{font-size:.72rem;color:var(--text-muted);}
 
-  .hud-levels{display:flex;gap:6px;}
-  .hud-dot{
-    width:9px;height:9px;border-radius:50%;
-    background:var(--line);
-    border:1px solid var(--text-faint);
-    transition:background .3s, border-color .3s;
+  .stamp-row{display:flex;gap:5px;flex:none;}
+  .stamp{
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid var(--line);
+    background:var(--bg-deep);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.62rem; color:var(--text-faint); font-weight:800;
+    transition:all .35s ease;
+    flex:none;
   }
-  .hud-dot.done{background:var(--gold);border-color:var(--gold-bright);}
-  .hud-dot.active{background:var(--success);border-color:var(--success-bright); box-shadow:0 0 0 3px rgba(79,174,124,.25);}
+  .stamp.active{
+    border-color:var(--gold-bright); background:var(--gold); color:#28210A;
+    box-shadow:0 0 0 3px rgba(201,162,39,.22);
+    animation:stampPop .4s ease;
+  }
+  .stamp.failed{
+    border-color:var(--danger); background:rgba(192,80,58,.18); color:var(--danger-bright);
+  }
+  @keyframes stampPop{0%{transform:scale(.5);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
 
   .hud-meter{
     display:flex;align-items:center;gap:8px;
@@ -192,6 +202,7 @@
     box-shadow:0 10px 24px -6px rgba(201,162,39,.55);
   }
   .btn-primary:hover{filter:brightness(1.06); box-shadow:0 12px 28px -6px rgba(201,162,39,.7);}
+  .btn-primary[disabled]{opacity:.5; pointer-events:none;}
   .btn-ghost{
     background:transparent;
     color:var(--text-muted);
@@ -207,6 +218,7 @@
   }
   .colonel-portrait{flex:none;}
   .colonel-portrait svg{width:104px; height:104px; display:block;}
+  .colonel-portrait.sm svg{width:56px; height:56px;}
   .colonel-speech{
     position:relative;
     background:var(--bg-deep);
@@ -234,6 +246,14 @@
   }
   .colonel-rank .star{width:11px; height:11px;}
   .colonel-rank span{font-size:.72rem; color:var(--text-muted);}
+
+  /* ---------- Gate progress caption ---------- */
+  .gate-tag{
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(201,162,39,.12); border:1px solid var(--gold);
+    color:var(--gold-bright); font-size:.72rem; font-weight:700;
+    padding:4px 12px; border-radius:999px; margin-bottom:8px;
+  }
 
   /* ---------- Level 1: desk ---------- */
   .desk{
@@ -339,6 +359,58 @@
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .toast.danger{border-color:var(--danger); color:var(--danger-bright);}
   .toast.success{border-color:var(--success); color:var(--success-bright);}
+
+  /* ---------- Quiz (gate 2) ---------- */
+  .quiz-options{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+  .quiz-option{
+    display:flex; align-items:center; gap:12px;
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:14px 16px; text-align:right; cursor:pointer;
+    font-family:'Tajawal',sans-serif; font-size:.92rem; color:var(--text);
+    transition:border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  .quiz-option:hover{border-color:var(--gold); transform:translateY(-1px);}
+  .quiz-option .letter{
+    width:26px; height:26px; border-radius:50%; flex:none;
+    background:var(--panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:.78rem; color:var(--gold-bright);
+  }
+  .quiz-option[disabled]{cursor:default;}
+  .quiz-option.correct{border-color:var(--success); background:rgba(79,174,124,.15);}
+  .quiz-option.correct .letter{background:var(--success); border-color:var(--success-bright); color:#0C2318;}
+  .quiz-option.wrong{border-color:var(--danger); background:rgba(192,80,58,.15);}
+  .quiz-option.wrong .letter{background:var(--danger); border-color:var(--danger-bright); color:#2b0e08;}
+
+  /* ---------- Order game (gate 3) ---------- */
+  .order-slots{display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 14px;}
+  .order-slot{
+    flex:1; min-width:70px; height:56px;
+    border:2px dashed var(--line); border-radius:var(--radius-md);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:.82rem;
+    color:var(--text-faint); background:var(--bg-deep); text-align:center; padding:0 6px;
+    transition:all .3s ease;
+  }
+  .order-slot.filled{border-style:solid; border-color:var(--gold); color:var(--text); background:rgba(201,162,39,.1);}
+  .order-slot.correct{border-color:var(--success); background:rgba(79,174,124,.15); color:var(--success-bright);}
+  .order-slot.wrong{border-color:var(--danger); background:rgba(192,80,58,.15); color:var(--danger-bright);}
+  .order-pool{display:flex; gap:10px; flex-wrap:wrap;}
+  .order-chip{
+    background:var(--paper); color:var(--paper-ink);
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:.85rem;
+    padding:12px 18px; border-radius:999px; border:none; cursor:pointer;
+    box-shadow:0 6px 12px rgba(0,0,0,.3);
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .order-chip:hover{transform:translateY(-2px);}
+  .order-chip[disabled]{opacity:.25; pointer-events:none; transform:none;}
+  .order-actions{display:flex; justify-content:flex-end; margin-top:4px;}
+  .link-btn{
+    background:none; border:none; color:var(--text-muted); font-size:.78rem;
+    cursor:pointer; text-decoration:underline; padding:4px;
+  }
+  .link-btn:hover{color:var(--text);}
 
   /* ---------- Level 2: dashboard ---------- */
   .dash{
@@ -472,9 +544,11 @@
         <span>أين وصلت معاملتي؟</span>
       </div>
     </div>
-    <div class="hud-levels" aria-hidden="true">
-      <span class="hud-dot" id="dot-1"></span>
-      <span class="hud-dot" id="dot-2"></span>
+    <div class="stamp-row" id="stampRow" aria-label="بوابات المسار">
+      <span class="stamp" data-stamp="1">١</span>
+      <span class="stamp" data-stamp="2">٢</span>
+      <span class="stamp" data-stamp="3">٣</span>
+      <span class="stamp" data-stamp="4">٤</span>
     </div>
     <div class="hud-meter">
       <span class="hud-meter-label">رضا العميل</span>
@@ -494,7 +568,7 @@
       <div class="panel">
         <p class="eyebrow">مسار التحدي · تجربة العميل</p>
         <h1 class="lead">معاملة العقيد فهد ضاعت بين الأوراق</h1>
-        <p class="body-text" style="margin-top:10px">قدّم العقيد فهد طلب نقل خدمة منذ أسابيع، ولا أحد يستطيع إخباره بمكانه الآن. ابحث عن معاملته بين الأوراق، ثم شاهد كيف يغيّر التتبع الرقمي القصة بالكامل.</p>
+        <p class="body-text" style="margin-top:10px">قدّم العقيد فهد طلب نقل خدمة منذ أسابيع، ولا أحد يستطيع إخباره بمكانه الآن. اجتز أربع بوابات لتتبّع معاملته وتحوّلها لتجربة رقمية سلسة.</p>
       </div>
 
       <div class="panel colonel">
@@ -510,15 +584,24 @@
         </div>
       </div>
 
+      <div class="panel" style="padding:16px 22px">
+        <div class="btn-row" style="gap:14px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">1</span> بوابة ١: المكتب الورقي</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">2</span> بوابة ٢: سؤال سريع</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">3</span> بوابة ٣: رتّب المسار</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">4</span> بوابة ٤: اللوحة الرقمية</div>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn btn-primary" id="btnStart">ابدأ التحدي ⟵</button>
       </div>
     </section>
 
-    <!-- LEVEL 1 -->
-    <section class="screen" id="screen-level1" hidden>
+    <!-- GATE 1: desk -->
+    <section class="screen" id="screen-gate1" hidden>
       <div class="panel">
-        <p class="eyebrow">المرحلة ١ · المكتب الورقي</p>
+        <span class="gate-tag">بوابة ١ من ٤</span>
         <h2 class="lead">ابحث عن معاملة العقيد فهد</h2>
         <p class="body-text" style="margin-top:8px">مكتب الموظف مزدحم بالمعاملات. كل اختيار خاطئ يخفّض رضا العميل، وكل ثانية تمر تقلّل الكوينز. ابحث عن الملف الصحيح: <b style="color:var(--text)">طلب رقم 4471 باسم العقيد فهد</b>.</p>
       </div>
@@ -544,7 +627,7 @@
       <div class="panel">
         <p class="eyebrow">بعد العثور على الملف</p>
         <h2 class="lead">وُجد الملف... لكن لا أحد يعرف أين هو الآن فعليًا</h2>
-        <p class="body-text" style="margin-top:10px">الملف انتقل بين ثلاثة أقسام دون أي إشعار للعقيد فهد، ورضاه انخفض بسبب الغموض والانتظار. ماذا لو استبدلنا الورق بلوحة تتبع رقمية واحدة؟</p>
+        <p class="body-text" style="margin-top:10px">الملف انتقل بين ثلاثة أقسام دون أي إشعار للعقيد فهد، ورضاه انخفض بسبب الغموض والانتظار.</p>
         <div class="stat-row">
           <div class="stat-tile">
             <div class="stat-num num" id="foundTimeStat">٠ ث</div>
@@ -557,14 +640,54 @@
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" id="btnGoLevel2">عرض النظام الرقمي ⟵</button>
+        <button class="btn btn-primary" id="btnGoGate2">التالي: بوابة ٢ ⟵</button>
       </div>
     </section>
 
-    <!-- LEVEL 2 -->
-    <section class="screen" id="screen-level2" hidden>
+    <!-- GATE 2: quiz -->
+    <section class="screen" id="screen-gate2" hidden>
       <div class="panel">
-        <p class="eyebrow">المرحلة ٢ · لوحة التتبع الرقمية</p>
+        <span class="gate-tag">بوابة ٢ من ٤</span>
+        <h2 class="lead">إيه أكتر حاجة قلّلت رضا العقيد فهد؟</h2>
+        <p class="body-text" style="margin-top:8px">اختَر إجابة واحدة — مفيش محاولة تانية.</p>
+        <div class="quiz-options" id="quizOptions">
+          <button class="quiz-option" data-correct="1"><span class="letter">أ</span> محدش قدر يقوله معاملته وصلت فين بالظبط</button>
+          <button class="quiz-option" data-correct="0"><span class="letter">ب</span> شكل المبنى القديم شوية</button>
+          <button class="quiz-option" data-correct="0"><span class="letter">ج</span> لون الاستمارة الورقية</button>
+          <button class="quiz-option" data-correct="0"><span class="letter">د</span> عدد الموظفين في قسم الاستقبال</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGoGate3" disabled>التالي: بوابة ٣ ⟵</button>
+      </div>
+    </section>
+
+    <!-- GATE 3: order -->
+    <section class="screen" id="screen-gate3" hidden>
+      <div class="panel">
+        <span class="gate-tag">بوابة ٣ من ٤</span>
+        <h2 class="lead">رتّب مسار الخدمة الصحيح</h2>
+        <p class="body-text" style="margin-top:8px">دوسي على الخطوات بالترتيب الصح من البداية للنهاية.</p>
+        <div class="order-slots" id="orderSlots">
+          <div class="order-slot" data-slot="0">١</div>
+          <div class="order-slot" data-slot="1">٢</div>
+          <div class="order-slot" data-slot="2">٣</div>
+          <div class="order-slot" data-slot="3">٤</div>
+        </div>
+        <div class="order-pool" id="orderPool"></div>
+        <div class="order-actions">
+          <button class="link-btn" id="btnOrderReset">مسح واعادة الترتيب</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGoGate4" disabled>التالي: بوابة ٤ ⟵</button>
+      </div>
+    </section>
+
+    <!-- GATE 4: dashboard -->
+    <section class="screen" id="screen-gate4" hidden>
+      <div class="panel">
+        <span class="gate-tag">بوابة ٤ من ٤</span>
         <h2 class="lead">أكمل إجراء معاملة العقيد فهد</h2>
         <p class="body-text" style="margin-top:8px">بدل الأوراق المبعثرة، مسار واحد واضح بأربع خطوات. أرسل إشعارًا للعقيد فهد فور إغلاق معاملته.</p>
       </div>
@@ -620,6 +743,10 @@
         <p class="body-text" style="margin-top:6px">رضا العميل: ممتاز</p>
         <div class="stat-row">
           <div class="stat-tile">
+            <div class="stat-num num" id="victoryStampsStat">0/4</div>
+            <div class="stat-label">بوابات مكتملة</div>
+          </div>
+          <div class="stat-tile">
             <div class="stat-num num" id="victoryCoinsStat">0</div>
             <div class="stat-label">إجمالي الكوينز</div>
           </div>
@@ -662,7 +789,7 @@
       <div class="panel">
         <p class="eyebrow">أفضل النتائج</p>
         <h2 class="lead">لوحة الصدارة</h2>
-        <p class="body-text" style="margin-top:8px">الترتيب حسب الكوينز — أسرع من يجد المعاملة الصحيحة يتصدّر.</p>
+        <p class="body-text" style="margin-top:8px">الترتيب حسب الكوينز — أسرع من يجد المعاملة الصحيحة ويجاوب صح يتصدّر.</p>
         <div id="lbContent">
           <div class="lb-loading">جارِ التحميل...</div>
         </div>
@@ -711,7 +838,6 @@
   // ---------- State ----------
   var TOTAL_TIME = 25; // seconds allowed to find the correct file
   var CIRC = 65.97; // 2*PI*10.5, the ring's circumference
-
   var WORKER_URL = 'https://colonel-fahd-leaderboard.innovationraces.workers.dev';
 
   var state = {
@@ -719,7 +845,7 @@
     coins: 0,
     findTimeSeconds: 0,
     screen: 'intro',
-    level1Solved: false,
+    stamps: [false, false, false, false],
     playerName: '',
     scoreSaved: false
   };
@@ -729,18 +855,16 @@
     window.claude.hot.snapshot(snapshot);
   }
 
-  var screens = ['intro','level1','transition','level2','victory','leaderboard'];
+  var screens = ['intro','gate1','transition','gate2','gate3','gate4','victory','leaderboard'];
   function showScreen(name){
     state.screen = name;
     screens.forEach(function(s){
       document.getElementById('screen-'+s).hidden = (s !== name);
     });
-    document.getElementById('dot-1').className = 'hud-dot' + (name==='level1'?' active':(['transition','level2','victory','leaderboard'].indexOf(name)>-1?' done':''));
-    document.getElementById('dot-2').className = 'hud-dot' + (name==='level2'?' active':(['victory','leaderboard'].indexOf(name)>-1?' done':''));
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
-  function setSatisfaction(val, animateFrom){
+  function setSatisfaction(val){
     val = Math.max(0, Math.min(100, val));
     state.satisfaction = val;
     document.getElementById('meterFill').style.transform = 'scaleX(' + (val/100) + ')';
@@ -755,6 +879,17 @@
   }
   setCoins(0);
 
+  function addCoins(delta){ setCoins(state.coins + delta); }
+
+  function setStamp(index, ok){
+    state.stamps[index] = ok;
+    var el = document.querySelector('.stamp[data-stamp="' + (index+1) + '"]');
+    if (!el) return;
+    el.classList.remove('active','failed');
+    if (ok === true) { el.classList.add('active'); el.textContent = '✓'; }
+    else if (ok === false) { el.classList.add('failed'); el.textContent = '✕'; }
+  }
+
   var toastEl = document.createElement('div');
   toastEl.className = 'toast';
   document.body.appendChild(toastEl);
@@ -766,7 +901,7 @@
     toastTimer = setTimeout(function(){ toastEl.className = 'toast'; }, 1800);
   }
 
-  // ---------- Level 1: desk files ----------
+  // ================= GATE 1: desk files =================
   var correctFile = { title: 'طلب نقل خدمة — العقيد فهد', tag: 'رقم 4471' };
   var decoys = [
     { title: 'طلب إجازة سنوية', tag: 'رقم 2210' },
@@ -787,6 +922,8 @@
     return a;
   }
 
+  var gate1Solved = false;
+
   function buildDesk(){
     var grid = document.getElementById('fileGrid');
     grid.innerHTML = '';
@@ -805,12 +942,10 @@
       btn.addEventListener('click', function(){ onFileClick(btn, card); });
       grid.appendChild(btn);
     });
-    state.level1Solved = false;
-    setCoins(0);
+    gate1Solved = false;
     startTimer();
   }
 
-  // ---------- Level 1 timer & coins (speed bonus) ----------
   var timerInterval = null;
   var timeLeft = TOTAL_TIME;
 
@@ -853,14 +988,13 @@
   function updateTransitionStats(){
     document.getElementById('foundTimeStat').textContent = Math.round(state.findTimeSeconds) + ' ث';
     document.getElementById('foundCoinsStat').textContent = state.coins;
-    document.getElementById('victoryCoinsStat').textContent = state.coins;
   }
 
   function handleTimeout(){
-    if (state.level1Solved) return;
-    state.level1Solved = true;
+    if (gate1Solved) return;
+    gate1Solved = true;
     state.findTimeSeconds = TOTAL_TIME;
-    setCoins(0);
+    setStamp(0, false);
     var cards = document.querySelectorAll('#fileGrid .file-card');
     cards.forEach(function(btn){
       btn.setAttribute('disabled','');
@@ -872,15 +1006,16 @@
   }
 
   function onFileClick(btn, card){
-    if (state.level1Solved) return;
+    if (gate1Solved) return;
     if (card === correctFile){
       stopTimer();
       btn.classList.add('correct');
       btn.setAttribute('disabled','');
-      state.level1Solved = true;
+      gate1Solved = true;
       state.findTimeSeconds = TOTAL_TIME - timeLeft;
       var earned = Math.round((timeLeft / TOTAL_TIME) * 100);
-      setCoins(earned);
+      addCoins(earned);
+      setStamp(0, true);
       toast('وجدته في ' + Math.round(state.findTimeSeconds) + ' ثانية! +' + earned + ' كوينز', 'success');
       updateTransitionStats();
       setTimeout(function(){ showScreen('transition'); }, 900);
@@ -892,7 +1027,107 @@
     }
   }
 
-  // ---------- Level 2: dashboard ----------
+  // ================= GATE 2: quiz =================
+  var gate2Answered = false;
+  function wireQuiz(){
+    var options = document.querySelectorAll('#quizOptions .quiz-option');
+    options.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (gate2Answered) return;
+        gate2Answered = true;
+        var isCorrect = opt.dataset.correct === '1';
+        options.forEach(function(o){
+          o.setAttribute('disabled','');
+          if (o.dataset.correct === '1') o.classList.add('correct');
+        });
+        if (isCorrect){
+          opt.classList.add('correct');
+          addCoins(20);
+          setStamp(1, true);
+          toast('إجابة صحيحة! +20 كوينز', 'success');
+        } else {
+          opt.classList.add('wrong');
+          setStamp(1, false);
+          toast('مش صحيحة — بس تقدر تكمل', 'danger');
+        }
+        document.getElementById('btnGoGate3').removeAttribute('disabled');
+      });
+    });
+  }
+
+  function resetGate2(){
+    gate2Answered = false;
+    var options = document.querySelectorAll('#quizOptions .quiz-option');
+    options.forEach(function(o){
+      o.removeAttribute('disabled');
+      o.classList.remove('correct','wrong');
+    });
+    document.getElementById('btnGoGate3').setAttribute('disabled','');
+  }
+
+  // ================= GATE 3: order game =================
+  var correctOrder = ['استلام','تعيين','إجراء','إغلاق'];
+  var placed = [];
+  var gate3Done = false;
+
+  function buildOrderGame(){
+    placed = [];
+    gate3Done = false;
+    document.getElementById('btnGoGate4').setAttribute('disabled','');
+    var slots = document.querySelectorAll('#orderSlots .order-slot');
+    slots.forEach(function(s, i){
+      s.className = 'order-slot';
+      s.textContent = String(i+1);
+    });
+    var pool = document.getElementById('orderPool');
+    pool.innerHTML = '';
+    shuffle(correctOrder).forEach(function(label){
+      var chip = document.createElement('button');
+      chip.className = 'order-chip';
+      chip.textContent = label;
+      chip.addEventListener('click', function(){ placeChip(chip, label); });
+      pool.appendChild(chip);
+    });
+  }
+
+  function placeChip(chip, label){
+    if (gate3Done || placed.length >= 4) return;
+    var idx = placed.length;
+    placed.push(label);
+    var slot = document.querySelector('.order-slot[data-slot="' + idx + '"]');
+    slot.textContent = label;
+    slot.classList.add('filled');
+    chip.setAttribute('disabled','');
+    if (placed.length === 4) evaluateOrder();
+  }
+
+  function evaluateOrder(){
+    gate3Done = true;
+    var allCorrect = true;
+    correctOrder.forEach(function(label, i){
+      var slot = document.querySelector('.order-slot[data-slot="' + i + '"]');
+      var ok = placed[i] === label;
+      slot.textContent = label; // reveal the correct label in this position
+      slot.classList.add(ok ? 'correct' : 'wrong');
+      if (!ok) allCorrect = false;
+    });
+    if (allCorrect){
+      addCoins(20);
+      setStamp(2, true);
+      toast('ترتيب صحيح! +20 كوينز', 'success');
+    } else {
+      setStamp(2, false);
+      toast('مش الترتيب الصحيح — دي الخطوات الصح', 'danger');
+    }
+    document.getElementById('btnGoGate4').removeAttribute('disabled');
+  }
+
+  document.getElementById('btnOrderReset').addEventListener('click', function(){
+    if (gate3Done) return; // no redo once evaluated — single attempt
+    buildOrderGame();
+  });
+
+  // ================= GATE 4: dashboard =================
   function runNotify(){
     var btn = document.getElementById('btnNotify');
     btn.setAttribute('disabled','');
@@ -917,6 +1152,8 @@
       step4.classList.remove('active');
       pill.textContent = 'تم الإغلاق';
       pill.classList.add('closed');
+      addCoins(10);
+      setStamp(3, true);
       toast('تم إرسال إشعار للعقيد فهد: تم إغلاق معاملتك ✅', 'success');
     }, 700);
 
@@ -928,12 +1165,19 @@
       var eased = 1 - Math.pow(1-p, 3);
       setSatisfaction(Math.round(startVal + (target-startVal)*eased));
       if (p < 1) requestAnimationFrame(animate);
-      else setTimeout(function(){ showScreen('victory'); }, 500);
+      else setTimeout(finishGame, 500);
     }
     setTimeout(function(){ requestAnimationFrame(animate); }, 700);
   }
 
-  // ---------- Leaderboard (Cloudflare Worker + Airtable) ----------
+  function finishGame(){
+    var earned = state.stamps.filter(function(s){ return s === true; }).length;
+    document.getElementById('victoryStampsStat').textContent = earned + '/4';
+    document.getElementById('victoryCoinsStat').textContent = state.coins;
+    showScreen('victory');
+  }
+
+  // ================= Leaderboard (Cloudflare Worker + Airtable) =================
   function submitScore(name){
     var statusEl = document.getElementById('saveStatus');
     var btn = document.getElementById('btnSaveScore');
@@ -1002,12 +1246,21 @@
   // ---------- Wiring ----------
   document.getElementById('btnStart').addEventListener('click', function(){
     buildDesk();
-    showScreen('level1');
+    showScreen('gate1');
   });
-  document.getElementById('btnGoLevel2').addEventListener('click', function(){
-    showScreen('level2');
+  document.getElementById('btnGoGate2').addEventListener('click', function(){
+    showScreen('gate2');
+  });
+  document.getElementById('btnGoGate3').addEventListener('click', function(){
+    buildOrderGame();
+    showScreen('gate3');
+  });
+  document.getElementById('btnGoGate4').addEventListener('click', function(){
+    showScreen('gate4');
   });
   document.getElementById('btnNotify').addEventListener('click', runNotify);
+
+  wireQuiz();
 
   document.getElementById('saveScoreForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -1023,14 +1276,19 @@
   document.getElementById('btnLbBack').addEventListener('click', function(){ showScreen('victory'); });
 
   document.getElementById('btnReplay').addEventListener('click', function(){
-    state.level1Solved = false;
     state.scoreSaved = false;
-    setSatisfaction(100);
-    setCoins(0);
     document.getElementById('playerNameInput').value = '';
     document.getElementById('saveStatus').textContent = '';
     document.getElementById('saveStatus').className = 'save-status';
     document.getElementById('btnSaveScore').removeAttribute('disabled');
+    state.stamps = [false,false,false,false];
+    document.querySelectorAll('.stamp').forEach(function(el, i){
+      el.className = 'stamp';
+      el.textContent = ['١','٢','٣','٤'][i];
+    });
+    setSatisfaction(100);
+    setCoins(0);
+    resetGate2();
     var step3 = document.querySelector('.rail-step[data-step="2"]');
     var step4 = document.querySelector('.rail-step[data-step="3"]');
     step3.className = 'rail-step active';
@@ -1051,12 +1309,10 @@
     if (data && typeof data.satisfaction === 'number') state.satisfaction = data.satisfaction;
     if (data && typeof data.coins === 'number') state.coins = data.coins;
     if (data && typeof data.findTimeSeconds === 'number') state.findTimeSeconds = data.findTimeSeconds;
-    var resuming = !!(data && data.level1Solved);
-    buildDesk();
-    if (resuming){
-      state.level1Solved = true;
-      stopTimer();
+    if (data && Array.isArray(data.stamps)) {
+      data.stamps.forEach(function(v, i){ if (v !== undefined) setStamp(i, v); });
     }
+    buildDesk();
     showScreen(data && data.screen ? data.screen : 'intro');
     setSatisfaction(state.satisfaction);
     setCoins(state.coins);
