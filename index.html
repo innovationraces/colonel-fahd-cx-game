@@ -144,6 +144,16 @@
   }
   .hud-coins svg{width:14px;height:14px;}
 
+  .hud-mute{
+    appearance:none; border:1px solid var(--line); background:var(--bg-deep);
+    color:var(--text); border-radius:999px; width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-size:1rem; flex:none; padding:0;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .hud-mute:hover{border-color:var(--gold);}
+  .hud-mute:active{transform:scale(.92);}
+
   /* ---------- Stage ---------- */
   .stage{
     flex:1;
@@ -155,6 +165,9 @@
     flex-direction:column;
     gap:18px;
     animation:rise .45s ease both;
+  }
+  .screen[hidden]{
+    display:none !important;
   }
   @keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
   @media (prefers-reduced-motion: reduce){
@@ -218,7 +231,6 @@
   }
   .colonel-portrait{flex:none;}
   .colonel-portrait svg{width:104px; height:104px; display:block;}
-  .colonel-portrait.sm svg{width:56px; height:56px;}
   .colonel-speech{
     position:relative;
     background:var(--bg-deep);
@@ -247,13 +259,48 @@
   .colonel-rank .star{width:11px; height:11px;}
   .colonel-rank span{font-size:.72rem; color:var(--text-muted);}
 
-  /* ---------- Gate progress caption ---------- */
-  .gate-tag{
-    display:inline-flex; align-items:center; gap:6px;
-    background:rgba(201,162,39,.12); border:1px solid var(--gold);
-    color:var(--gold-bright); font-size:.72rem; font-weight:700;
-    padding:4px 12px; border-radius:999px; margin-bottom:8px;
+  /* ---------- Journey map ---------- */
+  .journey-map{
+    position:relative;
+    min-height:520px;
+    margin-top:10px;
   }
+  .journey-svg{position:absolute; inset:0; width:100%; height:100%;}
+  .journey-svg path{fill:none; stroke:var(--line); stroke-width:2.5; stroke-dasharray:1 5; stroke-linecap:round;}
+  .journey-cap{
+    position:absolute; transform:translate(-50%,-50%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .journey-cap-top{left:50%; top:5%;}
+  .journey-cap-top svg{width:64px; height:64px; display:block;}
+  .journey-cap-bottom{left:50%; top:97%; font-size:1.9rem; filter:drop-shadow(0 4px 10px rgba(201,162,39,.45));}
+
+  .journey-node-wrap{
+    position:absolute; transform:translate(-50%,-50%);
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    width:118px;
+  }
+  .journey-node{
+    width:58px; height:58px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.45rem;
+    background:var(--bg-deep); border:3px solid var(--line);
+    cursor:pointer; appearance:none; padding:0;
+    transition:all .25s ease;
+  }
+  .journey-node[disabled]{cursor:default;}
+  .journey-node-wrap.locked .journey-node{opacity:.4;}
+  .journey-node-wrap.unlocked .journey-node{
+    border-color:var(--gold-bright); background:var(--gold);
+    box-shadow:0 0 0 6px rgba(201,162,39,.2);
+    animation:nodePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes nodePulse{0%,100%{box-shadow:0 0 0 5px rgba(201,162,39,.18);}50%{box-shadow:0 0 0 10px rgba(201,162,39,.3);}}
+  .journey-node-wrap.passed .journey-node{border-color:var(--success); background:rgba(79,174,124,.2);}
+  .journey-node-wrap.failed .journey-node{border-color:var(--danger); background:rgba(192,80,58,.2);}
+  .journey-label{font-size:.72rem; color:var(--text-muted); text-align:center; font-weight:600; line-height:1.3;}
+  .journey-node-wrap.unlocked .journey-label{color:var(--text); font-weight:800;}
+  .journey-coins{font-size:.68rem; color:var(--gold-bright);}
 
   /* ---------- Level 1: desk ---------- */
   .desk{
@@ -405,12 +452,6 @@
   }
   .order-chip:hover{transform:translateY(-2px);}
   .order-chip[disabled]{opacity:.25; pointer-events:none; transform:none;}
-  .order-actions{display:flex; justify-content:flex-end; margin-top:4px;}
-  .link-btn{
-    background:none; border:none; color:var(--text-muted); font-size:.78rem;
-    cursor:pointer; text-decoration:underline; padding:4px;
-  }
-  .link-btn:hover{color:var(--text);}
 
   /* ---------- Level 2: dashboard ---------- */
   .dash{
@@ -559,6 +600,7 @@
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#C9A227" stroke="#8a6f1c" stroke-width="1.5"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="#28210A" font-weight="800">$</text></svg>
       <span class="num" id="coinsVal">0</span>
     </div>
+    <button class="hud-mute" id="btnMute" type="button" aria-label="كتم أو تشغيل الموسيقى" title="كتم أو تشغيل الموسيقى">🔊</button>
   </header>
 
   <main class="stage">
@@ -584,17 +626,47 @@
         </div>
       </div>
 
-      <div class="panel" style="padding:16px 22px">
-        <div class="btn-row" style="gap:14px">
-          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">1</span> بوابة ١: المكتب الورقي</div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">2</span> بوابة ٢: سؤال سريع</div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">3</span> بوابة ٣: رتّب المسار</div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted)"><span class="stamp" style="width:18px;height:18px;font-size:0">4</span> بوابة ٤: اللوحة الرقمية</div>
-        </div>
-      </div>
-
       <div class="btn-row">
         <button class="btn btn-primary" id="btnStart">ابدأ التحدي ⟵</button>
+      </div>
+    </section>
+
+    <!-- HUB: journey map -->
+    <section class="screen" id="screen-hub" hidden>
+      <div class="panel" style="padding-bottom:14px">
+        <p class="eyebrow">مسار التحدي</p>
+        <h2 class="lead">رحلة معاملة العقيد فهد</h2>
+        <p class="body-text" style="margin-top:6px" id="hubNarrative">دوسي على النقطة المضيئة عشان تبدئي تحديها.</p>
+      </div>
+
+      <div class="journey-map" id="journeyMap">
+        <svg class="journey-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M50,5 C38,13 30,16 25,22 C14,30 15,35 25,42 C40,52 42,36 75,42 C100,47 62,56 25,62 C10,66 12,73 25,80 C38,88 62,90 50,95"></path>
+        </svg>
+        <div class="journey-cap journey-cap-top" id="journeyCapTop"></div>
+
+        <div class="journey-node-wrap" data-node="0" style="left:25%; top:22%;">
+          <button class="journey-node" data-idx="0">🗂️</button>
+          <span class="journey-label">بوابة ١<br>المكتب الورقي</span>
+        </div>
+        <div class="journey-node-wrap" data-node="1" style="left:75%; top:42%;">
+          <button class="journey-node" data-idx="1">❓</button>
+          <span class="journey-label">بوابة ٢<br>سؤال سريع</span>
+        </div>
+        <div class="journey-node-wrap" data-node="2" style="left:25%; top:62%;">
+          <button class="journey-node" data-idx="2">🔀</button>
+          <span class="journey-label">بوابة ٣<br>رتّب المسار</span>
+        </div>
+        <div class="journey-node-wrap" data-node="3" style="left:75%; top:80%;">
+          <button class="journey-node" data-idx="3">📨</button>
+          <span class="journey-label">بوابة ٤<br>اللوحة الرقمية</span>
+        </div>
+
+        <div class="journey-cap journey-cap-bottom">🏆</div>
+      </div>
+
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn btn-primary" id="btnShowVictory" hidden>شوف النتيجة النهائية ⟵</button>
       </div>
     </section>
 
@@ -622,28 +694,6 @@
       </div>
     </section>
 
-    <!-- TRANSITION -->
-    <section class="screen" id="screen-transition" hidden>
-      <div class="panel">
-        <p class="eyebrow">بعد العثور على الملف</p>
-        <h2 class="lead">وُجد الملف... لكن لا أحد يعرف أين هو الآن فعليًا</h2>
-        <p class="body-text" style="margin-top:10px">الملف انتقل بين ثلاثة أقسام دون أي إشعار للعقيد فهد، ورضاه انخفض بسبب الغموض والانتظار.</p>
-        <div class="stat-row">
-          <div class="stat-tile">
-            <div class="stat-num num" id="foundTimeStat">٠ ث</div>
-            <div class="stat-label">زمن البحث</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-num num" id="foundCoinsStat">0</div>
-            <div class="stat-label">كوينز مكتسبة</div>
-          </div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btnGoGate2">التالي: بوابة ٢ ⟵</button>
-      </div>
-    </section>
-
     <!-- GATE 2: quiz -->
     <section class="screen" id="screen-gate2" hidden>
       <div class="panel">
@@ -656,9 +706,6 @@
           <button class="quiz-option" data-correct="0"><span class="letter">ج</span> لون الاستمارة الورقية</button>
           <button class="quiz-option" data-correct="0"><span class="letter">د</span> عدد الموظفين في قسم الاستقبال</button>
         </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btnGoGate3" disabled>التالي: بوابة ٣ ⟵</button>
       </div>
     </section>
 
@@ -675,12 +722,6 @@
           <div class="order-slot" data-slot="3">٤</div>
         </div>
         <div class="order-pool" id="orderPool"></div>
-        <div class="order-actions">
-          <button class="link-btn" id="btnOrderReset">مسح واعادة الترتيب</button>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="btnGoGate4" disabled>التالي: بوابة ٤ ⟵</button>
       </div>
     </section>
 
@@ -739,12 +780,12 @@
       <div class="panel victory-hero">
         <p class="eyebrow">تم إغلاق المعاملة</p>
         <div class="confetti-row" aria-hidden="true">🎖️ ✨ 🎖️ ✨ 🎖️</div>
-        <div class="victory-score num">100%</div>
-        <p class="body-text" style="margin-top:6px">رضا العميل: ممتاز</p>
+        <div class="victory-score num" id="victorySatisfaction">100%</div>
+        <p class="body-text" style="margin-top:6px">رضا العميل النهائي</p>
         <div class="stat-row">
           <div class="stat-tile">
             <div class="stat-num num" id="victoryStampsStat">0/4</div>
-            <div class="stat-label">بوابات مكتملة</div>
+            <div class="stat-label">بوابات ناجحة</div>
           </div>
           <div class="stat-tile">
             <div class="stat-num num" id="victoryCoinsStat">0</div>
@@ -789,7 +830,7 @@
       <div class="panel">
         <p class="eyebrow">أفضل النتائج</p>
         <h2 class="lead">لوحة الصدارة</h2>
-        <p class="body-text" style="margin-top:8px">الترتيب حسب الكوينز — أسرع من يجد المعاملة الصحيحة ويجاوب صح يتصدّر.</p>
+        <p class="body-text" style="margin-top:8px">الترتيب حسب الكوينز.</p>
         <div id="lbContent">
           <div class="lb-loading">جارِ التحميل...</div>
         </div>
@@ -834,18 +875,145 @@
   }
   document.getElementById('portraitIntro').innerHTML = portraitSVG('worried');
   document.getElementById('portraitVictory').innerHTML = portraitSVG('happy');
+  document.getElementById('journeyCapTop').innerHTML = portraitSVG('worried');
+
+  // ---------- Audio: cheerful looping background music + chimes ----------
+  var AudioEngine = (function(){
+    var ctx = null, master = null, timerID = null;
+    var muted = false;
+    var current16th = 0, nextNoteTime = 0;
+    var tempo = 132.0;          // bpm — bright, bouncy, candy-crush-ish
+    var lookahead = 25.0;       // ms, scheduler tick
+    var scheduleAheadTime = 0.12; // seconds
+
+    var C5=523.25, D5=587.33, E5=659.25, G5=783.99, A5=880.00, C6=1046.50, B5=987.77;
+    var melody = [
+      C5,null,E5,null, G5,null,E5,null, C6,null,G5,null, A5,null,G5,null,
+      E5,null,G5,null, C6,null,A5,null, B5,null,G5,null, E5,null,D5,null
+    ];
+    var roots = [261.63, 329.63, 349.23, 392.00]; // C4 E4 F4 G4 walking root
+
+    function playTone(freq, time, dur, type, peakGain){
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      g.gain.setValueAtTime(0.0001, time);
+      g.gain.exponentialRampToValueAtTime(peakGain, time + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(time); osc.stop(time + dur + 0.05);
+    }
+
+    function playShaker(time){
+      var n = Math.floor(ctx.sampleRate * 0.03);
+      var buffer = ctx.createBuffer(1, n, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i=0;i<n;i++){ data[i] = (Math.random()*2-1) * (1 - i/n); }
+      var noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.045, time);
+      noise.connect(g); g.connect(master);
+      noise.start(time);
+    }
+
+    function scheduleStep(step, time){
+      var f = melody[step % melody.length];
+      if (f) playTone(f, time, 0.22, 'triangle', 0.09);
+      if (step % 8 === 0) playTone(roots[Math.floor(step/8) % roots.length], time, 0.35, 'sine', 0.06);
+      if (step % 4 === 2) playShaker(time);
+    }
+
+    function scheduler(){
+      while (nextNoteTime < ctx.currentTime + scheduleAheadTime){
+        scheduleStep(current16th, nextNoteTime);
+        nextNoteTime += (60.0 / tempo / 4);
+        current16th = (current16th + 1) % melody.length;
+      }
+      timerID = setTimeout(scheduler, lookahead);
+    }
+
+    function ensureCtx(){
+      if (!ctx){
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = 0.45;
+        master.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return true;
+    }
+
+    function start(){
+      if (!ensureCtx() || muted || timerID) return;
+      current16th = 0;
+      nextNoteTime = ctx.currentTime + 0.05;
+      scheduler();
+    }
+
+    function stopLoop(){
+      if (timerID){ clearTimeout(timerID); timerID = null; }
+    }
+
+    function toggleMute(){
+      if (!ensureCtx()) return muted;
+      muted = !muted;
+      if (muted){ stopLoop(); master.gain.setTargetAtTime(0, ctx.currentTime, 0.05); }
+      else { master.gain.setTargetAtTime(0.45, ctx.currentTime, 0.05); start(); }
+      return muted;
+    }
+
+    function chime(kind){
+      if (!ensureCtx() || muted) return;
+      var t = ctx.currentTime;
+      if (kind === 'success'){
+        [C5, E5, G5, C6].forEach(function(f, i){ playTone(f, t + i*0.07, 0.25, 'triangle', 0.16); });
+      } else if (kind === 'fail'){
+        playTone(196.00, t, 0.25, 'sawtooth', 0.10);
+        playTone(174.61, t + 0.12, 0.3, 'sawtooth', 0.10);
+      } else if (kind === 'coin'){
+        playTone(A5, t, 0.08, 'square', 0.11);
+        playTone(C6, t + 0.06, 0.14, 'square', 0.11);
+      }
+    }
+
+    return { start: start, toggleMute: toggleMute, chime: chime, isMuted: function(){ return muted; } };
+  })();
+
+  document.getElementById('btnMute').addEventListener('click', function(){
+    var muted = AudioEngine.toggleMute();
+    this.textContent = muted ? '🔇' : '🔊';
+  });
 
   // ---------- State ----------
   var TOTAL_TIME = 25; // seconds allowed to find the correct file
   var CIRC = 65.97; // 2*PI*10.5, the ring's circumference
+
+  var GATES = [
+    { icon:'🗂️', title:'المكتب الورقي', desc:'دوّري على معاملة العقيد فهد بين الملفات' },
+    { icon:'❓', title:'سؤال سريع', desc:'إيه اللي أثّر على رضا فهد؟' },
+    { icon:'🔀', title:'رتّب المسار', desc:'رتّبي خطوات الخدمة بالترتيب الصح' },
+    { icon:'📨', title:'اللوحة الرقمية', desc:'أغلقي المعاملة وابعتي إشعار' }
+  ];
+  var NARRATIVE = [
+    'المعاملة اتقدّمت وضاعت بين الأوراق. يلا نلاقيها.',
+    'اتلقيتي الملف! بس السرعة والدقة هما اللي بيفرقوا دلوقتي.',
+    'جاوبتي على السؤال، يلا نرتب مسار الخدمة صح.',
+    'خطوة أخيرة... افتحي اللوحة الرقمية واقفلي المعاملة.',
+    'كل البوابات خلصت! يلا نشوف النتيجة النهائية.'
+  ];
+
   var WORKER_URL = 'https://colonel-fahd-leaderboard.innovationraces.workers.dev';
 
   var state = {
     satisfaction: 100,
     coins: 0,
-    findTimeSeconds: 0,
     screen: 'intro',
-    stamps: [false, false, false, false],
+    stamps: [null, null, null, null],
+    gateInfo: [null, null, null, null], // e.g. {coins, time}
     playerName: '',
     scoreSaved: false
   };
@@ -855,7 +1023,7 @@
     window.claude.hot.snapshot(snapshot);
   }
 
-  var screens = ['intro','gate1','transition','gate2','gate3','gate4','victory','leaderboard'];
+  var screens = ['intro','hub','gate1','gate2','gate3','gate4','victory','leaderboard'];
   function showScreen(name){
     state.screen = name;
     screens.forEach(function(s){
@@ -878,16 +1046,17 @@
     document.getElementById('coinsVal').textContent = val;
   }
   setCoins(0);
-
   function addCoins(delta){ setCoins(state.coins + delta); }
 
-  function setStamp(index, ok){
+  function setStamp(index, ok, info){
     state.stamps[index] = ok;
+    state.gateInfo[index] = info || null;
     var el = document.querySelector('.stamp[data-stamp="' + (index+1) + '"]');
-    if (!el) return;
-    el.classList.remove('active','failed');
-    if (ok === true) { el.classList.add('active'); el.textContent = '✓'; }
-    else if (ok === false) { el.classList.add('failed'); el.textContent = '✕'; }
+    if (el){
+      el.classList.remove('active','failed');
+      if (ok === true) { el.classList.add('active'); el.textContent = '✓'; }
+      else if (ok === false) { el.classList.add('failed'); el.textContent = '✕'; }
+    }
   }
 
   var toastEl = document.createElement('div');
@@ -899,6 +1068,52 @@
     toastEl.className = 'toast show' + (kind ? ' '+kind : '');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function(){ toastEl.className = 'toast'; }, 1800);
+  }
+
+  // ================= HUB =================
+  function firstUnresolvedIndex(){
+    for (var i = 0; i < state.stamps.length; i++) if (state.stamps[i] === null) return i;
+    return -1;
+  }
+
+  function renderHub(){
+    var unlocked = firstUnresolvedIndex();
+    document.getElementById('hubNarrative').textContent = NARRATIVE[unlocked === -1 ? 4 : unlocked];
+
+    document.querySelectorAll('.journey-node-wrap').forEach(function(wrap){
+      var i = Number(wrap.dataset.node);
+      var status = state.stamps[i];
+      var isUnlocked = (i === unlocked);
+      wrap.className = 'journey-node-wrap' + (status === true ? ' passed' : status === false ? ' failed' : isUnlocked ? ' unlocked' : ' locked');
+      var btn = wrap.querySelector('.journey-node');
+      btn.disabled = !isUnlocked;
+      btn.textContent = status === true ? '✓' : status === false ? '✕' : GATES[i].icon;
+      var label = wrap.querySelector('.journey-label');
+      var info = state.gateInfo[i];
+      var coinsLine = (status === true && info && info.coins) ? ('<br><span class="journey-coins">+' + info.coins + ' 🪙</span>') : '';
+      label.innerHTML = 'بوابة ' + (i+1) + '<br>' + GATES[i].title + coinsLine;
+    });
+
+    document.getElementById('btnShowVictory').hidden = (unlocked !== -1);
+  }
+
+  document.querySelectorAll('.journey-node').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (btn.disabled) return;
+      openGate(Number(btn.dataset.idx));
+    });
+  });
+
+  function openGate(i){
+    if (i === 0){ buildDesk(); showScreen('gate1'); }
+    else if (i === 1){ resetGate2(); showScreen('gate2'); }
+    else if (i === 2){ buildOrderGame(); showScreen('gate3'); }
+    else if (i === 3){ showScreen('gate4'); }
+  }
+
+  function backToHub(){
+    renderHub();
+    showScreen('hub');
   }
 
   // ================= GATE 1: desk files =================
@@ -985,24 +1200,18 @@
     timerInterval = null;
   }
 
-  function updateTransitionStats(){
-    document.getElementById('foundTimeStat').textContent = Math.round(state.findTimeSeconds) + ' ث';
-    document.getElementById('foundCoinsStat').textContent = state.coins;
-  }
-
   function handleTimeout(){
     if (gate1Solved) return;
     gate1Solved = true;
-    state.findTimeSeconds = TOTAL_TIME;
-    setStamp(0, false);
+    setStamp(0, false, { coins: 0, time: TOTAL_TIME });
     var cards = document.querySelectorAll('#fileGrid .file-card');
     cards.forEach(function(btn){
       btn.setAttribute('disabled','');
       if (btn.dataset.correct === '1') btn.classList.add('correct');
     });
+    AudioEngine.chime('fail');
     toast('انتهى الوقت — لم تحصل على كوينز', 'danger');
-    updateTransitionStats();
-    setTimeout(function(){ showScreen('transition'); }, 1100);
+    setTimeout(backToHub, 1100);
   }
 
   function onFileClick(btn, card){
@@ -1012,17 +1221,18 @@
       btn.classList.add('correct');
       btn.setAttribute('disabled','');
       gate1Solved = true;
-      state.findTimeSeconds = TOTAL_TIME - timeLeft;
+      var timeUsed = TOTAL_TIME - timeLeft;
       var earned = Math.round((timeLeft / TOTAL_TIME) * 100);
       addCoins(earned);
-      setStamp(0, true);
-      toast('وجدته في ' + Math.round(state.findTimeSeconds) + ' ثانية! +' + earned + ' كوينز', 'success');
-      updateTransitionStats();
-      setTimeout(function(){ showScreen('transition'); }, 900);
+      setStamp(0, true, { coins: earned, time: timeUsed });
+      AudioEngine.chime('coin');
+      toast('وجدته في ' + Math.round(timeUsed) + ' ثانية! +' + earned + ' كوينز', 'success');
+      setTimeout(backToHub, 1100);
     } else {
       btn.classList.add('wrong');
       btn.setAttribute('disabled','');
       setSatisfaction(state.satisfaction - 12);
+      AudioEngine.chime('fail');
       toast('ليس هذا الملف — رضا العميل ينخفض', 'danger');
     }
   }
@@ -1043,14 +1253,16 @@
         if (isCorrect){
           opt.classList.add('correct');
           addCoins(20);
-          setStamp(1, true);
+          setStamp(1, true, { coins: 20 });
+          AudioEngine.chime('success');
           toast('إجابة صحيحة! +20 كوينز', 'success');
         } else {
           opt.classList.add('wrong');
-          setStamp(1, false);
+          setStamp(1, false, { coins: 0 });
+          AudioEngine.chime('fail');
           toast('مش صحيحة — بس تقدر تكمل', 'danger');
         }
-        document.getElementById('btnGoGate3').removeAttribute('disabled');
+        setTimeout(backToHub, 1400);
       });
     });
   }
@@ -1062,7 +1274,6 @@
       o.removeAttribute('disabled');
       o.classList.remove('correct','wrong');
     });
-    document.getElementById('btnGoGate3').setAttribute('disabled','');
   }
 
   // ================= GATE 3: order game =================
@@ -1073,7 +1284,6 @@
   function buildOrderGame(){
     placed = [];
     gate3Done = false;
-    document.getElementById('btnGoGate4').setAttribute('disabled','');
     var slots = document.querySelectorAll('#orderSlots .order-slot');
     slots.forEach(function(s, i){
       s.className = 'order-slot';
@@ -1113,19 +1323,16 @@
     });
     if (allCorrect){
       addCoins(20);
-      setStamp(2, true);
+      setStamp(2, true, { coins: 20 });
+      AudioEngine.chime('success');
       toast('ترتيب صحيح! +20 كوينز', 'success');
     } else {
-      setStamp(2, false);
+      setStamp(2, false, { coins: 0 });
+      AudioEngine.chime('fail');
       toast('مش الترتيب الصحيح — دي الخطوات الصح', 'danger');
     }
-    document.getElementById('btnGoGate4').removeAttribute('disabled');
+    setTimeout(backToHub, 1600);
   }
-
-  document.getElementById('btnOrderReset').addEventListener('click', function(){
-    if (gate3Done) return; // no redo once evaluated — single attempt
-    buildOrderGame();
-  });
 
   // ================= GATE 4: dashboard =================
   function runNotify(){
@@ -1153,7 +1360,8 @@
       pill.textContent = 'تم الإغلاق';
       pill.classList.add('closed');
       addCoins(10);
-      setStamp(3, true);
+      setStamp(3, true, { coins: 10 });
+      AudioEngine.chime('success');
       toast('تم إرسال إشعار للعقيد فهد: تم إغلاق معاملتك ✅', 'success');
     }, 700);
 
@@ -1165,15 +1373,16 @@
       var eased = 1 - Math.pow(1-p, 3);
       setSatisfaction(Math.round(startVal + (target-startVal)*eased));
       if (p < 1) requestAnimationFrame(animate);
-      else setTimeout(finishGame, 500);
+      else setTimeout(backToHub, 700);
     }
     setTimeout(function(){ requestAnimationFrame(animate); }, 700);
   }
 
-  function finishGame(){
+  function showVictory(){
     var earned = state.stamps.filter(function(s){ return s === true; }).length;
     document.getElementById('victoryStampsStat').textContent = earned + '/4';
     document.getElementById('victoryCoinsStat').textContent = state.coins;
+    document.getElementById('victorySatisfaction').textContent = state.satisfaction + '%';
     showScreen('victory');
   }
 
@@ -1191,7 +1400,6 @@
       body: JSON.stringify({
         name: name,
         coins: state.coins,
-        timeSeconds: Math.round(state.findTimeSeconds),
         satisfaction: state.satisfaction
       })
     }).then(function(res){
@@ -1245,19 +1453,11 @@
 
   // ---------- Wiring ----------
   document.getElementById('btnStart').addEventListener('click', function(){
-    buildDesk();
-    showScreen('gate1');
+    AudioEngine.start();
+    renderHub();
+    showScreen('hub');
   });
-  document.getElementById('btnGoGate2').addEventListener('click', function(){
-    showScreen('gate2');
-  });
-  document.getElementById('btnGoGate3').addEventListener('click', function(){
-    buildOrderGame();
-    showScreen('gate3');
-  });
-  document.getElementById('btnGoGate4').addEventListener('click', function(){
-    showScreen('gate4');
-  });
+  document.getElementById('btnShowVictory').addEventListener('click', showVictory);
   document.getElementById('btnNotify').addEventListener('click', runNotify);
 
   wireQuiz();
@@ -1281,7 +1481,8 @@
     document.getElementById('saveStatus').textContent = '';
     document.getElementById('saveStatus').className = 'save-status';
     document.getElementById('btnSaveScore').removeAttribute('disabled');
-    state.stamps = [false,false,false,false];
+    state.stamps = [null,null,null,null];
+    state.gateInfo = [null,null,null,null];
     document.querySelectorAll('.stamp').forEach(function(el, i){
       el.className = 'stamp';
       el.textContent = ['١','٢','٣','٤'][i];
@@ -1308,15 +1509,16 @@
   function start(data){
     if (data && typeof data.satisfaction === 'number') state.satisfaction = data.satisfaction;
     if (data && typeof data.coins === 'number') state.coins = data.coins;
-    if (data && typeof data.findTimeSeconds === 'number') state.findTimeSeconds = data.findTimeSeconds;
     if (data && Array.isArray(data.stamps)) {
-      data.stamps.forEach(function(v, i){ if (v !== undefined) setStamp(i, v); });
+      data.stamps.forEach(function(v, i){
+        if (v !== undefined) setStamp(i, v, data.gateInfo && data.gateInfo[i]);
+      });
     }
-    buildDesk();
-    showScreen(data && data.screen ? data.screen : 'intro');
     setSatisfaction(state.satisfaction);
     setCoins(state.coins);
-    updateTransitionStats();
+    var resumeScreen = (data && data.screen) || 'intro';
+    if (resumeScreen === 'victory') { showVictory(); }
+    else { renderHub(); showScreen(resumeScreen === 'intro' ? 'intro' : 'hub'); }
   }
 
   if (window.claude && window.claude.hot && window.claude.hot.ready) {
